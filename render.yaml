@@ -1,0 +1,15 @@
+echo "services:
+  - type: web
+    name: tstorage
+    env: node
+    buildCommand: npm install && npm install --prefix frontend && npm run build --prefix frontend
+    startCommand: node backend/server.js
+    envVars:
+      - key: MONGO_URI
+        fromDatabase:
+          name: tstorage-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: PORT
+        value: 10000" > render.yaml
