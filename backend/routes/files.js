@@ -274,24 +274,40 @@ router.get('/user-files', authMiddleware, async (req, res) => {
 // Get user's uploaded files
 router.get('/', authMiddleware, async (req, res) => {
   try {
+    // console.log('Files retrieval request received')
+    // console.log('Authenticated User ID:', req.user._id)
+    
     const files = await File.find({ 
       userId: req.user._id 
     }).sort({ createdAt: -1 }); // Sort by most recent first
 
+    // console.log('Files found:', files.length)
+
+    const processedFiles = files.map(file => ({
+      id: file._id,
+      fileName: file.fileName,
+      fileType: file.fileType,
+      fileSize: file.fileSize,
+      url: file.url,
+      expiresAt: file.expiresAt,
+      createdAt: file.createdAt
+    }))
+
+    // Explicitly set content type to JSON
+    res.header('Content-Type', 'application/json')
     res.json({ 
       message: 'Files retrieved successfully',
-      files: files.map(file => ({
-        id: file._id,
-        fileName: file.fileName,
-        fileType: file.fileType,
-        fileSize: file.fileSize,
-        url: file.url,
-        expiresAt: file.expiresAt,
-        createdAt: file.createdAt
-      }))
+      files: processedFiles
     });
   } catch (error) {
-    // console.error('Fetch files error:', error);
+    // console.error('Fetch files error:', {
+    //   message: error.message,
+    //   stack: error.stack,
+    //   userId: req.user ? req.user._id : 'No user'
+    // });
+    
+    // Explicitly set content type to JSON
+    res.header('Content-Type', 'application/json')
     res.status(500).json({ 
       message: 'Server error', 
       error: error.message 

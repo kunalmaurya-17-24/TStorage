@@ -18,6 +18,8 @@ const FileUpload = () => {
     percentage: ''
   })
   const [selectedTimer, setSelectedTimer] = useState('30m')
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState(null)
 
   const timerOptions = [
     { value: '5m', label: '5 mins' },
@@ -32,10 +34,59 @@ const FileUpload = () => {
 
   const fetchUploadedFiles = async () => {
     try {
-      const response = await axiosInstance.get('/files')
-      setUploadedFiles(response.data.files || response.data)
+      setError(null)
+      setIsLoading(true)
+      
+      // console.group('Fetch Uploaded Files')
+      // console.log('Token:', localStorage.getItem('token'))
+      
+      const response = await axiosInstance.get('/files', {
+        // Force no cache
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      })
+      
+      // console.log('Full Response:', response)
+      
+      let filesData = []
+      if (response.data && response.data.files) {
+        filesData = Array.isArray(response.data.files) 
+          ? response.data.files 
+          : []
+      }
+      
+      // console.log('Processed Files:', filesData)
+      // console.groupEnd()
+      
+      setUploadedFiles(filesData)
+      await fetchStorageInfo()
     } catch (error) {
-      // console.error('Failed to fetch uploaded files', error)
+      // console.group('Fetch Files Error')
+      // console.error('Error Details:', error)
+      
+      // Detailed error logging
+      // if (error.response) {
+      //   console.error('Response Status:', error.response.status)
+      //   console.error('Response Data:', error.response.data)
+      //   console.error('Response Headers:', error.response.headers)
+      // }
+      
+      // console.groupEnd()
+      
+      // More specific error handling
+      if (error.response && error.response.status === 401) {
+        // Token might be invalid, redirect to login
+        localStorage.removeItem('token')
+        navigate('/login')
+        toast.error('Session expired. Please log in again.')
+      } else {
+        setError(error.response?.data?.message || 'Failed to fetch files. Please try again.')
+        toast.error('Failed to fetch files. Please try again.')
+      }
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -509,6 +560,32 @@ const FileUpload = () => {
     </div>
   )
 
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="spinner-border" role="status">
+          <span className="loading">Loading...</span>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="text-red-500">
+          {error}
+          <button 
+            onClick={fetchUploadedFiles} 
+            className="ml-4 px-4 py-2 bg-blue-500 text-white rounded"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="bg-gray-700 h-screen w-screen relative flex justify-center items-center">
       <button
@@ -554,7 +631,9 @@ const FileUpload = () => {
         {/* Uploaded Files Section */}
         <div className="absolute top-[20%] left-[5%] w-[88%] h-[70%] overflow-y-auto">
           <h2 className="text-white text-xl mb-4">Uploaded Files</h2>
-          {uploadedFiles.length === 0 ? (
+          {isLoading ? (
+            <p className="text-gray-400">Loading files...</p>
+          ) : uploadedFiles.length === 0 ? (
             <p className="text-gray-400">No files uploaded yet</p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

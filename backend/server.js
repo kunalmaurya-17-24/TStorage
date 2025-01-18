@@ -7,12 +7,16 @@ require('dotenv').config()
 
 const app = express()
 
+const _dirname = path.resolve();
+
 // Middleware
 app.use(cors({
     origin: [
         'http://localhost:5173',  // Vite default
         'http://localhost:3000',  // Create React App default
-        'http://127.0.0.1:3000'   // Alternate localhost
+        'http://127.0.0.1:3000',  // Alternate localhost
+        'http://localhost:5000',  // Backend server port
+        'http://127.0.0.1:5000'   // Alternate backend server localhost
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -21,15 +25,29 @@ app.use(cors({
 app.use(express.json())
 app.use(cookieParser())
 
-// Serve uploaded files with authentication
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
+// Serve static files from frontend dist
+app.use(express.static(path.join(_dirname, 'frontend', 'dist')))
 
-// Connect to Database
-connectDB()
+// Serve uploaded files with authentication
+app.use('/uploads', express.static(path.join(_dirname, 'uploads')))
 
 // Routes
 app.use('/api/auth', require('./routes/auth'))
 app.use('/api/files', require('./routes/files'))
+
+// Catch-all route AFTER API routes
+app.get('*', (req, res) => {
+    // Only serve index.html for non-API routes
+    if (!req.path.startsWith('/api')) {
+        res.sendFile(path.join(_dirname, 'frontend', 'dist', 'index.html'))
+    } else {
+        // Handle undefined API routes
+        res.status(404).json({ message: 'API route not found' })
+    }
+})
+
+// Connect to Database
+connectDB()
 
 // Create uploads directory if it doesn't exist
 const fs = require('fs')
@@ -37,6 +55,17 @@ const uploadsDir = path.join(__dirname, 'uploads')
 if (!fs.existsSync(uploadsDir)){
     fs.mkdirSync(uploadsDir)
 }
+
+// Root route to show the server is running
+app.get('/', (req, res) => {
+    res.json({ 
+        message: 'Backend server is running', 
+        availableRoutes: [
+            '/api/auth',
+            '/api/files'
+        ]
+    });
+})
 
 const PORT = process.env.PORT || 5000
 

@@ -4,8 +4,10 @@
   "description": "Backend for User Management and File Upload System",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon backend/server.js",
+    "build":"npm install && npm install --prefix frontend && npm run build --prefix frontend",
+    "start": "node backend/server.js"
+
   },
   "dependencies": {
     "bcrypt": "^5.1.1",
