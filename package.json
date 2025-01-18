@@ -4,8 +4,9 @@
   "description": "Backend for User Management and File Upload System",
   "main": "backend/server.js",
   "scripts": {
-    "install-all": "npm install && npm install --prefix frontend && npm install vite --prefix frontend",
-    "build-frontend": "cd frontend && npm run build",
+    "install-frontend-deps": "cd frontend && npm install && npm install vite",
+    "install-all": "npm install && npm run install-frontend-deps",
+    "build-frontend": "cd frontend && npx vite build",
     "build": "npm run install-all && npm run build-frontend",
     "start": "node backend/server.js",
     "start:prod": "NODE_ENV=production node backend/server.js"
