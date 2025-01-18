@@ -67,10 +67,20 @@ app.get('/', (req, res) => {
     });
 })
 
+// Dynamic port with fallback
 const PORT = process.env.PORT || 5000
 
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`)
+const server = app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT} in ${process.env.NODE_ENV} mode`)
+})
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+    console.log('SIGTERM signal received: closing HTTP server')
+    server.close(() => {
+        console.log('HTTP server closed')
+        process.exit(0)
+    })
 })
 
 // Error handling middleware
