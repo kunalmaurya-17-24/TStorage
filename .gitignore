@@ -1,0 +1,61 @@
+# Dependency directories
+node_modules/
+
+# Environment files - EXTRA PROTECTION
+**/*.env
+**/.env
+**/.env.*
+!**/.env.example
+
+# Prevent tracking of any .env files in any subdirectory
+backend/.env
+frontend/.env
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Ignore specific environment configuration files
+**/config/.env
+**/configs/.env
+
+# Prevent accidental commits of sensitive files
+**/*secret*
+**/*key*
+**/*credential*
+
+# Additional Node.js and environment-specific ignores
+dist/
+build/
+out/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Operating System files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak
+
+# Backup files
+*.backup
+
+# Miscellaneous
+.npm
+.eslintcache
+.node_repl_history
