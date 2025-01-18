@@ -4,8 +4,8 @@
   "description": "Backend for User Management and File Upload System",
   "main": "backend/server.js",
   "scripts": {
-    "install-all": "npm install && npm install --prefix frontend",
-    "build-frontend": "npm run build --prefix frontend",
+    "install-all": "npm install && npm install --prefix frontend && npm install vite --prefix frontend",
+    "build-frontend": "cd frontend && npm run build",
     "build": "npm run install-all && npm run build-frontend",
     "start": "node backend/server.js",
     "start:prod": "NODE_ENV=production node backend/server.js"
@@ -29,6 +29,7 @@
     "pdf-parse": "^1.1.1"
   },
   "devDependencies": {
-    "nodemon": "^2.0.22"
+    "nodemon": "^2.0.22",
+    "vite": "^4.1.1"
   }
 }
