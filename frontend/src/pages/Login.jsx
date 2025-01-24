@@ -42,8 +42,9 @@ const Login = () => {
     e.preventDefault()
     
     try {
-      console.group('Login Attempt')
-      console.log('Attempting login with:', { email })
+      if (process.env.NODE_ENV !== 'production') {
+        console.group('Login Attempt')
+      }
       
       const response = await axiosInstance.post('/auth/login', { 
         email, 
@@ -55,11 +56,12 @@ const Login = () => {
         }
       })
       
-      // Extensive logging of response
-      console.log('Full Response:', response)
-      console.log('Response Data:', response.data)
-      console.log('Response Status:', response.status)
-      console.groupEnd()
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('Full Response:', response)
+        console.log('Response Data:', response.data)
+        console.log('Response Status:', response.status)
+        console.groupEnd()
+      }
       
       // Validate response structure
       if (!response.data || typeof response.data !== 'object') {
