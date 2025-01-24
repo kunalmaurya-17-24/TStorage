@@ -12,11 +12,12 @@ const _dirname = path.resolve();
 // Middleware
 app.use(cors({
     origin: [
-        'http://localhost:5173',  // Vite default
-        'http://localhost:3000',  // Create React App default
-        'http://127.0.0.1:3000',  // Alternate localhost
-        'http://localhost:5000',  // Backend server port
-        'http://127.0.0.1:5000'   // Alternate backend server localhost
+        'https://tstorage-1.onrender.com',  // Render deployment
+        'https://tstorage-1.onrender.com:5173',  // Vite default
+        'https://tstorage-1.onrender.com:3000',  // Create React App default
+        'https://tstorage-1.onrender.com:5000',  // Backend server port
+        'https://tstorage-1.onrender.com:8080',   // Additional port
+        'https://tstorage-1.onrender.com:5000'  // New endpoint
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
