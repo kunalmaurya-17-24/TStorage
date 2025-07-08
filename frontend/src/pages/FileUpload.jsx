@@ -191,44 +191,47 @@ const FileUpload = () => {
     const uploadToast = toast.loading('Uploading file...')
 
     try {
+      console.log('Starting file upload:', { fileName: file.name, fileSize: file.size, timer: selectedTimer })
+      
       const response = await axiosInstance.post('/files/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 30000, // 30 second timeout
       })
 
-      // console.log('Full Upload Response:', {
-      //   data: response.data,
-      //   selectedTimer: selectedTimer,
-      //   expiresAt: response.data.file.expiresAt,
-      //   debugInfo: response.data.file.debugInfo
-      // })
+      console.log('Upload successful:', response.data)
 
       // Dismiss loading toast and show success
       toast.dismiss(uploadToast)
-      toast.success(`File uploaded. Will expire in ${selectedTimer}`)
+      toast.success(`File uploaded successfully! Will expire in ${selectedTimer}`)
 
       // Reset file selection
       setSelectedTimer('30m') // Reset to default timer
       fileInputRef.current.value = '' // Clear file input
+      setIsUploading(false)
 
       // Refresh the uploaded files list
       await fetchUploadedFiles()
     } catch (error) {
+      console.error('Upload error:', error)
+      console.error('Upload error response:', error.response)
+      
       // Dismiss loading toast and show error
       toast.dismiss(uploadToast)
+      setIsUploading(false)
       
       // Check for specific error types
       if (error.response && error.response.status === 401) {
         toast.error('Session expired. Please log in again.')
-        // Optional: Redirect to login or trigger logout
         handleLogout()
+      } else if (error.code === 'ECONNABORTED') {
+        toast.error('Upload timeout. Please try again with a smaller file.')
       } else {
-        toast.error(
-          error.response?.data?.message || 
-          'File upload failed. Please try again.'
-        )
+        const errorMessage = error.response?.data?.message || 
+                           error.response?.data?.error || 
+                           error.message || 
+                           'File upload failed. Please try again.'
+        toast.error(errorMessage)
       }
-      
-      setIsUploading(false)
     }
   }
 
@@ -587,109 +590,152 @@ const FileUpload = () => {
   }
 
   return (
-    <div className="bg-gray-700 h-screen w-screen relative flex justify-center items-center">
-      <button
+<div className="min-h-screen w-screen flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 p-4">
+<button
         onClick={handleLogout}
-        className="absolute top-0 right-0 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-bl-lg shadow-md transition-colors duration-300 z-50"
+        className="absolute top-4 right-4 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-300 ease-in-out transform active:scale-95 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
       >
         Logout
       </button>
 
-      <div className="vishal bg-gray-900 w-[99%] h-[92%] rounded-2xl relative top-7">
-        <input
-          type="file"
-          ref={fileInputRef}
-          onChange={handleFileChange}
-          className="hidden"
-          accept="image/*,application/pdf,video/*,audio/*,text/*,.doc,.docx,.xls,.xlsx"
-        />
-
-        <div className="absolute top-[5%] left-[5%] bg-gray-600 bg-opacity-30 p-2 rounded-lg w-[88%]">
-          <button
-            onClick={handleFileSelect}
-            className="bg-blue-500 hover:bg-blue-600 text-white py-3 px-6 rounded-lg shadow-md transition-colors duration-300 ml-[5px] mt-[5px]"
-          >
-            Upload File
-          </button>
-          <p className="text-s text-gray-300 mt-2 text-center">
-            Max file upload limit: 20MB
-          </p>
-        </div>
-
-        {isUploading && (
-          <div className="absolute bottom-[10%] left-[5%] w-[88%] bg-gray-700 rounded-full h-2.5 mt-4">
-            <div
-              className="bg-blue-600 h-2.5 rounded-full"
-              style={{ width: '100%' }}
-            ></div>
-            <div className="text-center text-sm text-gray-300 mt-2">
-              Uploading...
-            </div>
+      <div className="bg-white w-full max-w-4xl mx-auto rounded-2xl shadow-2xl overflow-hidden">
+        <div className="p-8 space-y-6">
+          <div className="text-center">
+            <h2 className="text-3xl font-bold mb-2 text-gray-800">File Upload Dashboard</h2>
+            <p className="text-sm text-gray-500 mb-6">Manage your files securely</p>
           </div>
-        )}
 
-        {/* Uploaded Files Section */}
-        <div className="absolute top-[20%] left-[5%] w-[88%] h-[70%] overflow-y-auto">
-          <h2 className="text-white text-xl mb-4">Uploaded Files</h2>
-          {isLoading ? (
-            <p className="text-gray-400">Loading files...</p>
-          ) : uploadedFiles.length === 0 ? (
-            <p className="text-gray-400">No files uploaded yet</p>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {uploadedFiles.map((file, index) => (
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            className="hidden"
+            accept="image/*,application/pdf,video/*,audio/*,text/*,.doc,.docx,.xls,.xlsx"
+          />
+
+          <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+            <button
+              onClick={handleFileSelect}
+              className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition duration-300 ease-in-out transform active:scale-95 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+            >
+              Upload File
+            </button>
+            <p className="text-sm text-gray-600 mt-2 text-center">
+              Max file upload limit: 20MB
+            </p>
+          </div>
+
+          {/* Timer Selector */}
+          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <label className="block text-gray-700 mb-2 text-sm font-semibold">File Expiration Timer</label>
+            <select
+              value={selectedTimer}
+              onChange={(e) => setSelectedTimer(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300"
+            >
+              {timerOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {isUploading && (
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <div className="bg-gray-200 rounded-full h-2.5">
                 <div
-                  key={file._id || file.id || `file-${index}`}
-                  className="bg-gray-800 rounded-lg p-6 shadow-md hover:bg-gray-700 transition-colors w-full max-w-md"
-                >
-                  <div className="flex flex-col space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-white text-lg font-semibold mr-2 truncate">
-                        {file.fileName || file.originalName || file.name || 'Unnamed File'}
-                      </span>
-                      <span className="text-gray-400 text-sm ml-2 flex-shrink-0">
-                        {formatFileSize(file.size || file.fileSize || 0)}
-                      </span>
+                  className="bg-blue-600 h-2.5 rounded-full animate-pulse"
+                  style={{ width: '100%' }}
+                ></div>
+              </div>
+              <div className="text-center text-sm text-gray-600 mt-2">
+                Uploading...
+              </div>
+            </div>
+          )}
+
+          {/* Uploaded Files Section */}
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold text-gray-800">Uploaded Files</h3>
+            {isLoading ? (
+              <p className="text-gray-600">Loading files...</p>
+            ) : uploadedFiles.length === 0 ? (
+              <p className="text-gray-600">No files uploaded yet</p>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
+                {uploadedFiles.map((file, index) => (
+                  <div
+                    key={file._id || file.id || `file-${index}`}
+                    className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex flex-col space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-800 text-lg font-semibold mr-2 truncate">
+                          {file.fileName || file.originalName || file.name || 'Unnamed File'}
+                        </span>
+                        <span className="text-gray-600 text-sm ml-2 flex-shrink-0">
+                          {formatFileSize(file.size || file.fileSize || 0)}
+                        </span>
+                      </div>
+                      <div className="flex space-x-2 w-full">
+                        <button
+                          onClick={() => handlePreviewFile(file)}
+                          className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-3 rounded-lg text-sm transition duration-300 ease-in-out transform active:scale-95 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 flex-1"
+                        >
+                          Preview
+                        </button>
+                        <button
+                          onClick={() => handleShareFile(file)}
+                          className="bg-green-600 hover:bg-green-700 text-white py-2 px-3 rounded-lg text-sm transition duration-300 ease-in-out transform active:scale-95 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 flex-1"
+                        >
+                          Share
+                        </button>
+                        <button
+                          onClick={() => handleDeleteFile(file._id || file.id)}
+                          disabled={deletingFileId === (file._id || file.id)}
+                          className={`${
+                            deletingFileId === (file._id || file.id)
+                              ? 'bg-red-300 cursor-wait'
+                              : 'bg-red-600 hover:bg-red-700'
+                          }
+                            text-white py-2 px-3 rounded-lg text-sm transition duration-300 ease-in-out transform active:scale-95 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 flex-1
+                          `}
+                        >
+                          {deletingFileId === (file._id || file.id) ? 'Deleting...' : 'Delete'}
+                        </button>
+                      </div>
                     </div>
-                    {/* <div className="text-sm text-gray-500">
-                      {formatRemainingTime(file.expiresAt)}
-                    </div> */}
-                    <div className="flex space-x-3 w-full">
-                      <button
-                        onClick={() => handlePreviewFile(file)}
-                        className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md text-sm transition-colors flex-1"
-                      >
-                        Preview
-                      </button>
-                      <button
-                        onClick={() => handleShareFile(file)}
-                        className="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-md text-sm transition-colors flex-1"
-                      >
-                        Share
-                      </button>
-                      <button
-                        onClick={() => handleDeleteFile(file._id || file.id)}
-                        disabled={deletingFileId === (file._id || file.id)}
-                        className={`${
-                          deletingFileId === (file._id || file.id)
-                            ? 'bg-red-300 cursor-wait'
-                            : 'bg-red-500 hover:bg-red-600'
-                        }
-                          text-white py-2 px-4 rounded-md text-sm transition-colors flex-1
-                        `}
-                      >
-                        {deletingFileId === (file._id || file.id) ? 'Deleting...' : 'Delete'}
-                      </button>
-                    </div>
-                  </div>
                 </div>
               ))}
             </div>
           )}
+          </div>
+          {/* Storage Information */}
+          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-gray-700 text-sm font-semibold">
+                Storage Used: {storageInfo.formattedUsed} / {storageInfo.formattedTotal}
+              </span>
+              <span className="text-gray-700 text-sm font-semibold">
+                {storageInfo.percentage}
+              </span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div
+                className={`h-2 rounded-full ${
+                  storagePercentage > 90
+                    ? 'bg-red-500'
+                    : storagePercentage > 75
+                      ? 'bg-yellow-500'
+                      : 'bg-green-500'
+                }`}
+                style={{ width: `${storagePercentage}%` }}
+              ></div>
+            </div>
+          </div>
         </div>
       </div>
-      <TimerSelector />
-      <StorageUsageBar />
       <PreviewModal />
     </div>
   )

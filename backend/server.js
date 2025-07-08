@@ -9,28 +9,38 @@ const app = express()
 
 const _dirname = path.resolve();
 
-// Middleware
+// Middleware - Allow all origins for development
 app.use(cors({
-    origin: [
-        'https://tstorage-1.onrender.com',  // Render deployment
-        'https://tstorage-1.onrender.com:5173',  // Vite default
-        'https://tstorage-1.onrender.com:3000',  // Create React App default
-        'https://tstorage-1.onrender.com:5000',  // Backend server port
-        'https://tstorage-1.onrender.com:8080',   // Additional port
-        'https://tstorage-1.onrender.com:5000'  // New endpoint
-    ],
+    origin: true,  // Allow all origins for development
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control', 'Pragma', 'Expires']
 }))
 app.use(express.json())
 app.use(cookieParser())
+
+// Request logging middleware
+app.use((req, res, next) => {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.url} - Origin: ${req.get('Origin')}`)
+    next()
+})
 
 // Serve static files from frontend dist
 app.use(express.static(path.join(_dirname, 'frontend', 'dist')))
 
 // Serve uploaded files with authentication
 app.use('/uploads', express.static(path.join(_dirname, 'uploads')))
+
+// Root route to show the server is running
+app.get('/', (req, res) => {
+    res.json({ 
+        message: 'Backend server is running', 
+        availableRoutes: [
+            '/api/auth',
+            '/api/files'
+        ]
+    });
+})
 
 // Routes
 app.use('/api/auth', require('./routes/auth'))
@@ -57,16 +67,6 @@ if (!fs.existsSync(uploadsDir)){
     fs.mkdirSync(uploadsDir)
 }
 
-// Root route to show the server is running
-app.get('/', (req, res) => {
-    res.json({ 
-        message: 'Backend server is running', 
-        availableRoutes: [
-            '/api/auth',
-            '/api/files'
-        ]
-    });
-})
 
 const PORT = process.env.PORT || 5000
 

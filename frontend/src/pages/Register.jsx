@@ -42,16 +42,25 @@ const Register = () => {
     }
 
     try {
+      console.log('Starting registration with:', { username, email, password: password.length + ' characters' })
+      
       const response = await axiosInstance.post('/auth/register', { 
         username, 
         email, 
         password 
       })
       
+      console.log('Registration successful:', response.data)
       toast.success('Registration successful!')
       navigate('/login')
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Registration failed')
+      console.error('Registration error:', error)
+      console.error('Error response:', error.response)
+      console.error('Error message:', error.message)
+      
+      const errorMessage = error.response?.data?.message || error.message || 'Registration failed'
+      console.error('Final error message:', errorMessage)
+      toast.error(errorMessage)
     }
   }
 

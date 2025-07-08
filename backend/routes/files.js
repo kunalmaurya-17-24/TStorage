@@ -155,7 +155,7 @@ router.post('/upload', authMiddleware, upload.single('file'), async (req, res) =
         folder: '/user-uploads'
       }, (err, result) => {
         if (err) {
-          // console.error('ImageKit upload error:', err)
+    console.error('ImageKit upload error:', err)
           reject(err)
         } else {
           resolve(result)
@@ -198,7 +198,7 @@ router.post('/upload', authMiddleware, upload.single('file'), async (req, res) =
       }
     })
   } catch (error) {
-    // console.error('Comprehensive file upload error:', error)
+    console.error('Comprehensive file upload error:', error)
     
     // More specific error handling
     if (error.code === 11000) {

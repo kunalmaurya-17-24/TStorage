@@ -5,9 +5,8 @@
   "main": "server.js",
   "scripts": {
     "dev": "nodemon backend/server.js",
-    "build":"npm install && npm install --prefix frontend && npm run build --prefix frontend",
+    "build": "npm install && npm install --prefix frontend && npm run build --prefix frontend",
     "start": "node backend/server.js"
-
   },
   "dependencies": {
     "bcrypt": "^5.1.1",
