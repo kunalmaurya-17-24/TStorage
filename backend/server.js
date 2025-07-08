@@ -19,11 +19,6 @@ app.use(cors({
 app.use(express.json())
 app.use(cookieParser())
 
-// Request logging middleware
-app.use((req, res, next) => {
-    console.log(`${new Date().toISOString()} - ${req.method} ${req.url} - Origin: ${req.get('Origin')}`)
-    next()
-})
 
 // Serve static files from frontend dist
 app.use(express.static(path.join(_dirname, 'frontend', 'dist')))

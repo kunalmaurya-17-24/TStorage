@@ -191,14 +191,12 @@ const FileUpload = () => {
     const uploadToast = toast.loading('Uploading file...')
 
     try {
-      console.log('Starting file upload:', { fileName: file.name, fileSize: file.size, timer: selectedTimer })
       
       const response = await axiosInstance.post('/files/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
         timeout: 30000, // 30 second timeout
       })
 
-      console.log('Upload successful:', response.data)
 
       // Dismiss loading toast and show success
       toast.dismiss(uploadToast)
@@ -212,8 +210,6 @@ const FileUpload = () => {
       // Refresh the uploaded files list
       await fetchUploadedFiles()
     } catch (error) {
-      console.error('Upload error:', error)
-      console.error('Upload error response:', error.response)
       
       // Dismiss loading toast and show error
       toast.dismiss(uploadToast)

@@ -24,12 +24,6 @@ axiosInstance.interceptors.request.use(
     }
 
     // Log request details
-    console.group('Axios Request')
-    console.log('URL:', config.url)
-    console.log('Method:', config.method)
-    console.log('Headers:', config.headers)
-    console.log('Params:', config.params)
-    console.groupEnd()
 
     return config
   },
@@ -41,21 +35,9 @@ axiosInstance.interceptors.request.use(
 // Add a response interceptor for logging
 axiosInstance.interceptors.response.use(
   response => {
-    console.group('Axios Response')
-    console.log('URL:', response.config.url)
-    console.log('Status:', response.status)
-    console.log('Data:', response.data)
-    console.groupEnd()
     return response;
   },
   error => {
-    console.group('Axios Error')
-    console.error('Error Details:', error)
-    if (error.response) {
-      console.error('Response Status:', error.response.status)
-      console.error('Response Data:', error.response.data)
-    }
-    console.groupEnd()
     return Promise.reject(error)
   }
 );
