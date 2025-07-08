@@ -122,7 +122,7 @@ This project is open-source and available under the [MIT License](LICENSE).
 ## 📫 Contact
 
 Created by [Kunal Maurya](https://github.com/kunalmaurya-17-24)
-For questions or feedback: *[kunalmaurya171724@gmail.com](mailto:kunalmaurya.mait@gmail.com)* (optional)
+For questions or feedback: *[kunalmaurya.mait@gmail.com](mailto:kunalmaurya.mait@gmail.com)* (optional)
 
 ```
 
