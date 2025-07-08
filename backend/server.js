@@ -38,14 +38,26 @@ app.use(express.static(path.join(_dirname, 'frontend', 'dist')))
 // Serve uploaded files with authentication
 app.use('/uploads', express.static(path.join(_dirname, 'uploads')))
 
+// Health check endpoint
+app.get('/health', (req, res) => {
+    res.status(200).json({ 
+        status: 'OK',
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        environment: process.env.NODE_ENV || 'development'
+    })
+})
+
 // Root route to show the server is running
 app.get('/', (req, res) => {
     res.json({ 
         message: 'Backend server is running', 
         availableRoutes: [
             '/api/auth',
-            '/api/files'
-        ]
+            '/api/files',
+            '/health'
+        ],
+        status: 'OK'
     });
 })
 
@@ -77,8 +89,17 @@ if (!fs.existsSync(uploadsDir)){
 
 const PORT = process.env.PORT || 5000
 
+console.log('Starting server...')
+console.log('Environment:', process.env.NODE_ENV)
+console.log('MongoDB URI configured:', !!process.env.MONGO_URI)
+console.log('JWT Secret configured:', !!process.env.JWT_SECRET)
+
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`)
+    console.log(`✅ Server successfully running on port ${PORT}`)
+    console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`)
+}).on('error', (err) => {
+    console.error('❌ Server failed to start:', err)
+    process.exit(1)
 })
 
 // Error handling middleware

@@ -147,6 +147,14 @@ router.post('/upload', authMiddleware, upload.single('file'), async (req, res) =
       })
     }
 
+    // Check if ImageKit is available
+    if (!imagekit) {
+      return res.status(500).json({
+        message: 'File upload service not configured',
+        error: 'ImageKit configuration missing'
+      })
+    }
+
     // ImageKit upload
     const uploadResponse = await new Promise((resolve, reject) => {
       imagekit.upload({
